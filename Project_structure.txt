@@ -1,0 +1,81 @@
+movie_tracker/
+├── pubspec.yaml
+├── android/
+│   └── app/src/main/AndroidManifest.xml
+├── ios/
+│   └── Runner/Info.plist
+└── lib/
+    ├── main.dart
+    ├── core/
+    │   ├── config/
+    │   │   └── app_config.dart
+    │   ├── constants/
+    │   │   └── api_endpoints.dart
+    │   ├── errors/
+    │   │   └── app_exceptions.dart
+    │   ├── network/
+    │   │   ├── http_client.dart
+    │   │   └── connectivity_service.dart
+    │   ├── router/
+    │   │   └── app_router.dart
+    │   ├── storage/
+    │   │   ├── secure_storage_service.dart
+    │   │   └── local_cache_service.dart
+    │   ├── theme/
+    │   │   └── app_theme.dart
+    │   └── utils/
+    │       └── validators.dart
+    ├── models/
+    │   ├── enums.dart
+    │   ├── user_profile.dart
+    │   ├── media_item.dart
+    │   ├── episode_item.dart
+    │   ├── comment_item.dart
+    │   ├── custom_list.dart
+    │   └── user_stats.dart
+    ├── repositories/
+    │   ├── auth_repository.dart
+    │   ├── media_repository.dart
+    │   ├── activity_repository.dart
+    │   └── list_repository.dart
+    ├── providers/
+    │   ├── auth_provider.dart
+    │   ├── media_provider.dart
+    │   ├── activity_provider.dart
+    │   └── list_provider.dart
+    ├── screens/
+    │   ├── auth/
+    │   │   ├── login_screen.dart
+    │   │   ├── register_screen.dart
+    │   │   └── reset_password_screen.dart
+    │   ├── home/
+    │   │   ├── home_screen.dart
+    │   │   └── widgets/
+    │   │       ├── popular_section.dart
+    │   │       ├── new_releases_section.dart
+    │   │       └── recommended_section.dart
+    │   ├── search/
+    │   │   └── search_screen.dart
+    │   ├── detail/
+    │   │   ├── media_detail_screen.dart
+    │   │   └── widgets/
+    │   │       ├── episode_accordion.dart
+    │   │       └── comment_section.dart
+    │   ├── lists/
+    │   │   ├── watchlist_screen.dart
+    │   │   ├── custom_lists_screen.dart
+    │   │   ├── list_detail_screen.dart
+    │   │   └── widgets/
+    │   │       └── create_edit_list_sheet.dart
+    │   ├── profile/
+    │   │   ├── profile_screen.dart
+    │   │   └── edit_profile_screen.dart
+    │   └── navigation/
+    │       └── main_navigation_screen.dart
+    └── widgets/
+        ├── media_card.dart
+        ├── progress_bar.dart
+        ├── loading_indicator.dart
+        ├── error_view.dart
+        ├── watch_status_selector.dart
+        └── rating_input.dart
