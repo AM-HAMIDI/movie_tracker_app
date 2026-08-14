@@ -3,9 +3,6 @@ import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/register_screen.dart';
 import '../../screens/auth/reset_password_screen.dart';
 import '../../screens/navigation/main_navigation_screen.dart';
-import '../../screens/detail/media_detail_screen.dart';
-import '../../screens/profile/edit_profile_screen.dart';
-import '../../screens/lists/list_detail_screen.dart';
 
 class AppRouter {
   static const String initial = '/';
@@ -27,18 +24,6 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const ResetPasswordScreen());
       case mainNav:
         return MaterialPageRoute(builder: (_) => const MainNavigationScreen());
-      case mediaDetail:
-        final imdbId = settings.arguments as String;
-        return MaterialPageRoute(
-          builder: (_) => MediaDetailScreen(imdbId: imdbId),
-        );
-      case editProfile:
-        return MaterialPageRoute(builder: (_) => const EditProfileScreen());
-      case listDetail:
-        final listId = settings.arguments as String;
-        return MaterialPageRoute(
-          builder: (_) => ListDetailScreen(listId: listId),
-        );
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
