@@ -1,0 +1,21 @@
+backend/
+├── package.json
+├── .env
+├── server.js                  # App bootstrap, Swagger setup, global error handler
+├── config/
+│   └── db.js                  # MongoDB Mongoose connection
+├── middleware/
+│   ├── auth.js                # JWT verification & role authorization
+│   └── validator.js           # Request payload validations
+├── models/
+│   ├── User.js                # Users collection
+│   ├── MediaCache.js          # Cached IMDb items collection
+│   ├── UserActivity.js        # Watch status, rating, episode toggles
+│   ├── Comment.js             # User reviews & spoiler tags
+│   └── CustomList.js          # User custom playlists
+├── routes/
+│   ├── authRoutes.js          # /api/auth
+│   ├── mediaRoutes.js         # /api/media
+│   └── activityRoutes.js      # /api/activity
+└── services/
+    └── omdbService.js         # Direct IMDb/OMDb gateway & DB caching engine
