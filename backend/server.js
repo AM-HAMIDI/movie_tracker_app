@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const connectDB = require('./config/db');
+const dns = require('node:dns/promises');
+dns.setServers(['1.1.1.1', '8.8.8.8']);
 
 // Load environment variables from .env
 dotenv.config();
@@ -71,6 +73,5 @@ app.use((err, req, res, next) => {
 // Start the Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server listening on http://localhost:${PORT}`);
-  console.log(`📑 Swagger Documentation available at http://localhost:${PORT}/api-docs`);
+  console.log(`Server listening on http://localhost:${PORT}`);
 });
