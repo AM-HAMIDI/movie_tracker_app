@@ -224,4 +224,74 @@ router.get('/user/statistics', authenticate, async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/activity/user/all:
+ *   get:
+ *     summary: Get all activities for the logged-in user (for Watchlists)
+ *     tags: [Activity]
+ */
+router.get('/user/all', authenticate, async (req, res, next) => {
+  try {
+    const activities = await UserActivity.find({ userId: req.user.id });
+    
+    // Fetch full media details for each activity from the cache
+    const populatedActivities = await Promise.all(
+      activities.map(async (act) => {
+        const media = await MediaCache.findOne({ imdbId: act.imdbId });
+        return {
+          ...act.toObject(),
+          media: media || null
+        };
+      })
+    );
+    
+    res.json(populatedActivities);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @swagger
+ * /api/activity/lists/{listId}/items:
+ *   post:
+ *     summary: Add an IMDb ID to a custom list
+ *     tags: [Custom Lists]
+ */
+router.post('/lists/:listId/items', authenticate, async (req, res, next) => {
+  try {
+    const { imdbId } = req.body;
+    const list = await CustomList.findOne({ _id: req.params.listId, userId: req.user.id });
+    
+    if (!list) return res.status(404).json({ statusCode: 404, errorMessage: 'List not found.' });
+    if (!list.items.includes(imdbId)) {
+      list.items.push(imdbId);
+      await list.save();
+    }
+    res.json(list);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @swagger
+ * /api/activity/lists/{listId}/details:
+ *   get:
+ *     summary: Get full media details for items in a custom list
+ *     tags: [Custom Lists]
+ */
+router.get('/lists/:listId/details', authenticate, async (req, res, next) => {
+  try {
+    const list = await CustomList.findOne({ _id: req.params.listId, userId: req.user.id });
+    if (!list) return res.status(404).json({ statusCode: 404, errorMessage: 'List not found.' });
+
+    const mediaItems = await MediaCache.find({ imdbId: { $in: list.items } });
+    res.json(mediaItems);
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../core/router/app_router.dart';
-import '../../models/media_item.dart';
-import '../../repositories/media_repository.dart';
+import '../../core/network/http_client.dart';
+import '../../core/config/app_config.dart';
 import 'custom_lists_screen.dart';
 
 class WatchlistScreen extends StatelessWidget {
@@ -27,9 +26,10 @@ class WatchlistScreen extends StatelessWidget {
         ),
         body: const TabBarView(
           children: [
-            _WatchlistTab(query: 'Marvel'),
-            _WatchlistTab(query: 'Star Wars'),
-            _WatchlistTab(query: 'Avengers'),
+            // Matches the exact backend enums for filtering
+            _WatchlistTab(query: 'Watching'),
+            _WatchlistTab(query: 'Plan to Watch'),
+            _WatchlistTab(query: 'Watched'),
             CustomListsScreen(),
           ],
         ),
@@ -47,8 +47,8 @@ class _WatchlistTab extends StatefulWidget {
 }
 
 class _WatchlistTabState extends State<_WatchlistTab> {
-  final _mediaRepo = MediaRepository();
-  List<MediaItem> _items = [];
+  final _httpClient = HttpClient();
+  List<dynamic> _items = [];
   bool _loading = true;
 
   @override
@@ -58,12 +58,22 @@ class _WatchlistTabState extends State<_WatchlistTab> {
   }
 
   void _loadTabMedia() async {
-    final results = await _mediaRepo.searchMedia(widget.query);
-    if (mounted) {
-      setState(() {
-        _items = results;
-        _loading = false;
-      });
+    try {
+      // Fetches all user activity from the backend
+      final response = await _httpClient.get('${AppConfig.baseUrl}/activity/user/all');
+      final List allActivities = response.data as List;
+      
+      // Filters the activity locally based on the Tab's watchStatus
+      final filtered = allActivities.where((act) => act['watchStatus'] == widget.query).toList();
+      
+      if (mounted) {
+        setState(() {
+          _items = filtered;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -75,15 +85,20 @@ class _WatchlistTabState extends State<_WatchlistTab> {
     return ListView.builder(
       itemCount: _items.length,
       itemBuilder: (context, index) {
-        final item = _items[index];
+        final activity = _items[index];
+        final media = activity['media'];
+        
+        // If media was not populated successfully, skip rendering this item
+        if (media == null) return const SizedBox.shrink();
+
         return ListTile(
-          leading: item.poster.isNotEmpty
-              ? Image.network(item.poster, width: 40, fit: BoxFit.cover)
+          leading: media['poster'] != null && media['poster'].isNotEmpty
+              ? Image.network(media['poster'], width: 40, fit: BoxFit.cover)
               : const Icon(Icons.movie),
-          title: Text(item.title),
-          subtitle: Text('${item.type.name.toUpperCase()} • ${item.year}'),
+          title: Text(media['title'] ?? 'Unknown Title'),
+          subtitle: Text('${media['type'].toString().toUpperCase()} • ${media['year']}'),
           onTap: () {
-            Navigator.pushNamed(context, AppRouter.mediaDetail, arguments: item.imdbId);
+            Navigator.pushNamed(context, AppRouter.mediaDetail, arguments: media['imdbId']);
           },
         );
       },

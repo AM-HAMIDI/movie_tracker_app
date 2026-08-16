@@ -31,8 +31,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _save() {
-    // Saves updated info to server
-    Navigator.pop(context);
+    // FIX: Add your API call here to send the updated _nameController.text 
+    // and _bioController.text to your Node.js backend.
+    
+    Navigator.pop(context); // Closes the screen
   }
 
   @override

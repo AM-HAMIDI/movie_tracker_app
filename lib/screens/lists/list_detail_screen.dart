@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/router/app_router.dart';
 import '../../models/media_item.dart';
-import '../../repositories/media_repository.dart';
+import '../../core/network/http_client.dart';
+import '../../core/config/app_config.dart';
 
 class ListDetailScreen extends StatefulWidget {
   final String listId;
@@ -12,7 +13,6 @@ class ListDetailScreen extends StatefulWidget {
 }
 
 class _ListDetailScreenState extends State<ListDetailScreen> {
-  final _mediaRepo = MediaRepository();
   List<MediaItem> _items = [];
   bool _loading = true;
 
@@ -23,13 +23,19 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
   }
 
   void _loadItems() async {
-    // Fetches titles associated with the custom list
-    final results = await _mediaRepo.searchMedia('Batman');
-    if (mounted) {
-      setState(() {
-        _items = results;
-        _loading = false;
-      });
+    try {
+      // Calls the new backend endpoint to get populated MediaItems for this specific Custom List
+      final response = await HttpClient().get('${AppConfig.baseUrl}/activity/lists/${widget.listId}/details');
+      final List listData = response.data as List;
+      
+      if (mounted) {
+        setState(() {
+          _items = listData.map((e) => MediaItem.fromJson(e as Map<String, dynamic>)).toList();
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -39,26 +45,28 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
       appBar: AppBar(title: const Text('List Titles')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _items.length,
-              itemBuilder: (context, index) {
-                final item = _items[index];
-                return ListTile(
-                  leading: item.poster.isNotEmpty
-                      ? Image.network(item.poster, width: 40, fit: BoxFit.cover)
-                      : const Icon(Icons.movie),
-                  title: Text(item.title),
-                  subtitle: Text('${item.year} • ${item.type.name}'),
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRouter.mediaDetail,
-                      arguments: item.imdbId,
+          : _items.isEmpty
+              ? const Center(child: Text('This list is empty.'))
+              : ListView.builder(
+                  itemCount: _items.length,
+                  itemBuilder: (context, index) {
+                    final item = _items[index];
+                    return ListTile(
+                      leading: item.poster.isNotEmpty
+                          ? Image.network(item.poster, width: 40, fit: BoxFit.cover)
+                          : const Icon(Icons.movie),
+                      title: Text(item.title),
+                      subtitle: Text('${item.year} • ${item.type.name}'),
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          AppRouter.mediaDetail,
+                          arguments: item.imdbId,
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
+                ),
     );
   }
 }
