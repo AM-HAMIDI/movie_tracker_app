@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../core/router/app_router.dart';
 import '../models/media_item.dart';
 import '../models/enums.dart';
 
 class MediaCard extends StatelessWidget {
   final MediaItem item;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final double width;
   final double height;
 
   const MediaCard({
     super.key,
     required this.item,
-    required this.onTap,
+    this.onTap,
     this.width = 130,
     this.height = 190,
   });
@@ -20,7 +21,14 @@ class MediaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap ??
+          () {
+            Navigator.pushNamed(
+              context,
+              AppRouter.mediaDetail,
+              arguments: item.imdbId,
+            );
+          },
       child: Container(
         width: width,
         margin: const EdgeInsets.only(right: 12),
