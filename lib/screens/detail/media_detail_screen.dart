@@ -9,6 +9,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/watch_status_selector.dart';
 import '../../widgets/rating_input.dart';
 import '../../widgets/progress_bar.dart';
+import '../../widgets/add_to_list_sheet.dart'; // The bottom sheet import
 import 'widgets/episode_accordion.dart';
 import 'widgets/comment_section.dart';
 
@@ -60,6 +61,18 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
       appBar: AppBar(
         title: Text(_media!.title),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.playlist_add),
+            tooltip: 'Add to Custom List',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (_) => AddToListSheet(imdbId: widget.imdbId),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(
               (activity['isFavorite'] ?? false) ? Icons.favorite : Icons.favorite_border,
@@ -124,7 +137,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
             const Divider(height: 24),
             SeriesProgressBar(
               watchedCount: watchedEpisodes.length,
-              totalCount: _media!.totalSeasons * 8, // Estimate baseline if total count unknown
+              totalCount: _media!.totalSeasons * 8, 
               status: currentStatus,
             ),
             const SizedBox(height: 16),

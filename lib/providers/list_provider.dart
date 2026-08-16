@@ -19,8 +19,12 @@ class ListProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _customLists = await _listRepository.getCustomLists();
-    } catch (_) {}
+      final fetchedLists = await _listRepository.getCustomLists();
+      _customLists = fetchedLists; // Only update state if fetch was successful
+    } catch (e) {
+      debugPrint('🚨 ERROR FETCHING LISTS: $e');
+    }
+    
     _isLoading = false;
     notifyListeners();
   }
@@ -30,7 +34,9 @@ class ListProvider extends ChangeNotifier {
       final newList = await _listRepository.createCustomList(name);
       _customLists.add(newList);
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error creating list: $e');
+    }
   }
 
   Future<void> deleteList(String listId) async {
@@ -38,6 +44,30 @@ class ListProvider extends ChangeNotifier {
       await _listRepository.deleteList(listId);
       _customLists.removeWhere((l) => l.id == listId);
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error deleting list: $e');
+    }
+  }
+
+  Future<void> addItemToList(String listId, String imdbId) async {
+    try {
+      await _listRepository.addItemToList(listId, imdbId);
+      // Silent sync update
+      _customLists = await _listRepository.getCustomLists();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('🚨 BACKEND ERROR (Add to List): $e');
+    }
+  }
+
+  Future<void> removeItemFromList(String listId, String imdbId) async {
+    try {
+      await _listRepository.removeItemFromList(listId, imdbId);
+      // Silent sync update
+      _customLists = await _listRepository.getCustomLists();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('🚨 BACKEND ERROR (Remove from List): $e');
+    }
   }
 }

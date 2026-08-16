@@ -9,33 +9,6 @@ const { validateRating } = require('../middleware/validator');
 
 /**
  * @swagger
- * /api/activity/{imdbId}:
- *   get:
- *     summary: Get logged user activity for specific title
- *     tags: [Activity]
- */
-router.get('/:imdbId', authenticate, async (req, res, next) => {
-  try {
-    const activity = await UserActivity.findOne({
-      userId: req.user.id,
-      imdbId: req.params.imdbId,
-    });
-
-    res.json(
-      activity || {
-        watchStatus: 'None',
-        rating: 0,
-        isFavorite: false,
-        watchedEpisodes: [],
-      }
-    );
-  } catch (err) {
-    next(err);
-  }
-});
-
-/**
- * @swagger
  * /api/activity/update:
  *   post:
  *     summary: Update watch status, rating, or watched episodes
@@ -167,6 +140,72 @@ router.delete('/lists/:listId', authenticate, async (req, res, next) => {
 
 /**
  * @swagger
+ * /api/activity/lists/{listId}/items:
+ *   post:
+ *     summary: Add an IMDb ID to a custom list
+ *     tags: [Custom Lists]
+ */
+router.post('/lists/:listId/items', authenticate, async (req, res, next) => {
+  try {
+    const { imdbId } = req.body;
+    const list = await CustomList.findOne({ _id: req.params.listId, userId: req.user.id });
+    
+    if (!list) return res.status(404).json({ statusCode: 404, errorMessage: 'List not found.' });
+    if (!list.items.includes(imdbId)) {
+      list.items.push(imdbId);
+      await list.save();
+    }
+    res.json(list);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * ADDED THIS ENDPOINT:
+ * @swagger
+ * /api/activity/lists/{listId}/items/{imdbId}:
+ *   delete:
+ *     summary: Remove an IMDb ID from a custom list
+ *     tags: [Custom Lists]
+ */
+router.delete('/lists/:listId/items/:imdbId', authenticate, async (req, res, next) => {
+  try {
+    const list = await CustomList.findOne({ _id: req.params.listId, userId: req.user.id });
+    
+    if (!list) return res.status(404).json({ statusCode: 404, errorMessage: 'List not found.' });
+    
+    // Filter out the movie being removed
+    list.items = list.items.filter(id => id !== req.params.imdbId);
+    await list.save();
+    
+    res.json(list);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @swagger
+ * /api/activity/lists/{listId}/details:
+ *   get:
+ *     summary: Get full media details for items in a custom list
+ *     tags: [Custom Lists]
+ */
+router.get('/lists/:listId/details', authenticate, async (req, res, next) => {
+  try {
+    const list = await CustomList.findOne({ _id: req.params.listId, userId: req.user.id });
+    if (!list) return res.status(404).json({ statusCode: 404, errorMessage: 'List not found.' });
+
+    const mediaItems = await MediaCache.find({ imdbId: { $in: list.items } });
+    res.json(mediaItems);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @swagger
  * /api/activity/user/statistics:
  *   get:
  *     summary: Compute activity statistics for the user profile
@@ -235,7 +274,6 @@ router.get('/user/all', authenticate, async (req, res, next) => {
   try {
     const activities = await UserActivity.find({ userId: req.user.id });
     
-    // Fetch full media details for each activity from the cache
     const populatedActivities = await Promise.all(
       activities.map(async (act) => {
         const media = await MediaCache.findOne({ imdbId: act.imdbId });
@@ -254,41 +292,28 @@ router.get('/user/all', authenticate, async (req, res, next) => {
 
 /**
  * @swagger
- * /api/activity/lists/{listId}/items:
- *   post:
- *     summary: Add an IMDb ID to a custom list
- *     tags: [Custom Lists]
- */
-router.post('/lists/:listId/items', authenticate, async (req, res, next) => {
-  try {
-    const { imdbId } = req.body;
-    const list = await CustomList.findOne({ _id: req.params.listId, userId: req.user.id });
-    
-    if (!list) return res.status(404).json({ statusCode: 404, errorMessage: 'List not found.' });
-    if (!list.items.includes(imdbId)) {
-      list.items.push(imdbId);
-      await list.save();
-    }
-    res.json(list);
-  } catch (err) {
-    next(err);
-  }
-});
-
-/**
- * @swagger
- * /api/activity/lists/{listId}/details:
+ * /api/activity/{imdbId}:
  *   get:
- *     summary: Get full media details for items in a custom list
- *     tags: [Custom Lists]
+ *     summary: Get logged user activity for specific title
+ *     tags: [Activity]
+ * 
+ * FIX: Moved to the BOTTOM so it does not hijack literal paths like /lists or /user/all!
  */
-router.get('/lists/:listId/details', authenticate, async (req, res, next) => {
+router.get('/:imdbId', authenticate, async (req, res, next) => {
   try {
-    const list = await CustomList.findOne({ _id: req.params.listId, userId: req.user.id });
-    if (!list) return res.status(404).json({ statusCode: 404, errorMessage: 'List not found.' });
+    const activity = await UserActivity.findOne({
+      userId: req.user.id,
+      imdbId: req.params.imdbId,
+    });
 
-    const mediaItems = await MediaCache.find({ imdbId: { $in: list.items } });
-    res.json(mediaItems);
+    res.json(
+      activity || {
+        watchStatus: 'None',
+        rating: 0,
+        isFavorite: false,
+        watchedEpisodes: [],
+      }
+    );
   } catch (err) {
     next(err);
   }

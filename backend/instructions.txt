@@ -1,0 +1,2 @@
+1 - port forwarding : "C:\Android\platform-tools\adb.exe" reverse tcp:5000 tcp:5000
+2 - forwarding verification : "C:\Android\platform-tools\adb.exe" reverse --list   

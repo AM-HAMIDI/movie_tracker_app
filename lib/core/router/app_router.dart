@@ -4,6 +4,7 @@ import '../../screens/auth/register_screen.dart';
 import '../../screens/auth/reset_password_screen.dart';
 import '../../screens/navigation/main_navigation_screen.dart';
 import '../../screens/detail/media_detail_screen.dart';
+import '../../screens/lists/list_detail_screen.dart'; 
 
 class AppRouter {
   static const String initial = '/';
@@ -29,6 +30,11 @@ class AppRouter {
         final imdbId = settings.arguments as String;
         return MaterialPageRoute(
           builder: (_) => MediaDetailScreen(imdbId: imdbId),
+        );
+      case listDetail:
+        final listId = settings.arguments as String;
+        return MaterialPageRoute(
+          builder: (_) => ListDetailScreen(listId: listId),
         );
       default:
         return MaterialPageRoute(
