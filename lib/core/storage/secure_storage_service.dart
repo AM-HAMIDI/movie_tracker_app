@@ -1,8 +1,9 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorageService {
+  // FIX: Using the default AndroidOptions() as required by flutter_secure_storage v10+
   static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(),
+    aOptions: AndroidOptions(), 
   );
 
   static const String _tokenKey = 'jwt_auth_token';

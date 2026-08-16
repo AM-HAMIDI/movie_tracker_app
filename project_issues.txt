@@ -1,0 +1,2 @@
+1 - fix app_config file constants
+2 - OMDB_API_KEY=YOUR_OMDB_OR_IMDB_KEY

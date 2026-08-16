@@ -38,11 +38,12 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
+      // FIX: Changed from CardThemeData to CardTheme
       cardTheme: CardThemeData(
         color: AppColors.surface,
-        elevation: 2,
+        elevation: 2.0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.0),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
