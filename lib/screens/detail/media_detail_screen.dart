@@ -9,7 +9,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/watch_status_selector.dart';
 import '../../widgets/rating_input.dart';
 import '../../widgets/progress_bar.dart';
-import '../../widgets/add_to_list_sheet.dart'; // The bottom sheet import
+import '../../widgets/add_to_list_sheet.dart'; 
 import 'widgets/episode_accordion.dart';
 import 'widgets/comment_section.dart';
 
@@ -107,10 +107,21 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
                     Text(_media!.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     Text('${_media!.type == MediaType.series ? "Series" : "Movie"} • ${_media!.year}', style: const TextStyle(color: Colors.white54)),
+                    const SizedBox(height: 8),
+                    
                     Text('Genre: ${_media!.genre}', style: const TextStyle(color: Colors.white70)),
-                    Text('IMDb Rating: ${_media!.imdbRating} ⭐', style: const TextStyle(color: Colors.amberAccent)),
                     Text('Director: ${_media!.director}', style: const TextStyle(color: Colors.white70)),
-                    Text('Runtime: ${_media!.runtime}', style: const TextStyle(color: Colors.white70)),
+                    Text('Actors: ${_media!.actors}', style: const TextStyle(color: Colors.white70)),
+                    Text('Status: ${_media!.status}', style: const TextStyle(color: Colors.white70)),
+                    
+                    if (_media!.type == MediaType.series)
+                      Text(
+                        'Seasons: ${_media!.totalSeasons} | Episodes: ${_media!.totalEpisodes > 0 ? _media!.totalEpisodes : "N/A"}', 
+                        style: const TextStyle(color: Colors.white70)
+                      ),
+                    
+                    const SizedBox(height: 4),
+                    Text('IMDb Rating: ${_media!.imdbRating} ⭐', style: const TextStyle(color: Colors.amberAccent)),
                   ],
                 ),
               ),

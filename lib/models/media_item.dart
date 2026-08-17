@@ -1,65 +1,68 @@
 import 'enums.dart';
 
 class MediaItem {
+  final String id;
   final String imdbId;
   final String title;
-  final MediaType type;
-  final String poster;
-  final String plot;
-  final String genre;
   final String year;
-  final String runtime;
+  final String poster;
+  final MediaType type;
+  final String plot;
   final String director;
-  final String actors;
+  final String genre;
+  final String runtime;
   final String imdbRating;
   final int totalSeasons;
+  final String actors;
+  final int totalEpisodes;
+  final String status;
 
   MediaItem({
+    required this.id,
     required this.imdbId,
     required this.title,
-    required this.type,
-    required this.poster,
-    required this.plot,
-    required this.genre,
     required this.year,
-    required this.runtime,
+    required this.poster,
+    required this.type,
+    required this.plot,
     required this.director,
-    required this.actors,
+    required this.genre,
+    required this.runtime,
     required this.imdbRating,
     required this.totalSeasons,
+    this.actors = 'N/A',
+    this.totalEpisodes = 0,
+    this.status = 'Unknown',
   });
 
   factory MediaItem.fromJson(Map<String, dynamic> json) {
+    // Helper to derive status from the year string (e.g., "2005–" means Continuing)
+    String deriveStatus(String yearStr) {
+      if (yearStr.endsWith('–') || yearStr.endsWith('-')) return 'Continuing';
+      if (yearStr.contains('–') || yearStr.contains('-')) return 'Ended';
+      return 'Released';
+    }
+
     return MediaItem(
-      imdbId: json['imdbId'] ?? json['imdbID'] ?? '',
-      title: json['title'] ?? json['Title'] ?? '',
-      type: MediaTypeExtension.fromString(json['type'] ?? json['Type']),
-      poster: json['poster'] ?? json['Poster'] ?? '',
-      plot: json['plot'] ?? json['Plot'] ?? 'No plot overview available.',
-      genre: json['genre'] ?? json['Genre'] ?? 'N/A',
-      year: json['year'] ?? json['Year'] ?? 'N/A',
-      runtime: json['runtime'] ?? json['Runtime'] ?? 'N/A',
-      director: json['director'] ?? json['Director'] ?? 'N/A',
-      actors: json['actors'] ?? json['Actors'] ?? 'N/A',
-      imdbRating: json['imdbRating']?.toString() ?? 'N/A',
-      totalSeasons: json['totalSeasons'] is int
-          ? json['totalSeasons']
-          : int.tryParse(json['totalSeasons']?.toString() ?? '0') ?? 0,
+      id: json['_id'] ?? json['id'] ?? '',
+      imdbId: json['imdbID'] ?? json['imdbId'] ?? '',
+      title: json['Title'] ?? json['title'] ?? 'Unknown',
+      year: json['Year'] ?? json['year'] ?? '',
+      poster: json['Poster'] ?? json['poster'] ?? '',
+      type: (json['Type'] ?? json['type']).toString().toLowerCase() == 'series' 
+          ? MediaType.series 
+          : MediaType.movie,
+      plot: json['Plot'] ?? json['plot'] ?? 'No plot available.',
+      director: json['Director'] ?? json['director'] ?? 'N/A',
+      genre: json['Genre'] ?? json['genre'] ?? 'N/A',
+      runtime: json['Runtime'] ?? json['runtime'] ?? 'N/A',
+      imdbRating: json['imdbRating'] ?? 'N/A',
+      totalSeasons: int.tryParse(json['totalSeasons']?.toString() ?? '0') ?? 0,
+      
+      // --- MAP NEW FIELDS ---
+      actors: json['Actors'] ?? json['actors'] ?? 'N/A',
+      totalEpisodes: int.tryParse(json['totalEpisodes']?.toString() ?? '0') ?? 0,
+      status: json['Status'] ?? json['status'] ?? deriveStatus(json['Year'] ?? json['year'] ?? ''),
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'imdbId': imdbId,
-        'title': title,
-        'type': type.toServerString(),
-        'poster': poster,
-        'plot': plot,
-        'genre': genre,
-        'year': year,
-        'runtime': runtime,
-        'director': director,
-        'actors': actors,
-        'imdbRating': imdbRating,
-        'totalSeasons': totalSeasons,
-      };
 }
