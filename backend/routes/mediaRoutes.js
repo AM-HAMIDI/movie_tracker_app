@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const omdbService = require('../services/omdbService');
+const MediaCache = require('../models/MediaCache');
+const { authenticate } = require('../middleware/auth');
 
 /**
  * @swagger
@@ -55,6 +57,21 @@ router.get('/detail/:imdbId/season/:seasonNum', async (req, res, next) => {
       parseInt(req.params.seasonNum, 10)
     );
     res.json(episodes);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * ADMIN ONLY: Delete a cached media item from the database
+ */
+router.delete('/cache/:imdbId', authenticate, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ errorMessage: 'Admin access required to modify media database.' });
+    }
+    await MediaCache.findOneAndDelete({ imdbId: req.params.imdbId });
+    res.json({ message: 'Media record successfully deleted from cache.' });
   } catch (err) {
     next(err);
   }

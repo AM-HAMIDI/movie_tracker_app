@@ -86,6 +86,21 @@ router.post('/comments', authenticate, async (req, res, next) => {
 });
 
 /**
+ * ADMIN ONLY: Delete an inappropriate comment
+ */
+router.delete('/comments/:commentId', authenticate, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ errorMessage: 'Admin access required to delete user comments.' });
+    }
+    await Comment.findByIdAndDelete(req.params.commentId);
+    res.json({ message: 'Comment successfully deleted by Admin.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * @swagger
  * /api/activity/lists:
  *   get:
@@ -162,7 +177,6 @@ router.post('/lists/:listId/items', authenticate, async (req, res, next) => {
 });
 
 /**
- * ADDED THIS ENDPOINT:
  * @swagger
  * /api/activity/lists/{listId}/items/{imdbId}:
  *   delete:
@@ -175,7 +189,6 @@ router.delete('/lists/:listId/items/:imdbId', authenticate, async (req, res, nex
     
     if (!list) return res.status(404).json({ statusCode: 404, errorMessage: 'List not found.' });
     
-    // Filter out the movie being removed
     list.items = list.items.filter(id => id !== req.params.imdbId);
     await list.save();
     
@@ -296,8 +309,6 @@ router.get('/user/all', authenticate, async (req, res, next) => {
  *   get:
  *     summary: Get logged user activity for specific title
  *     tags: [Activity]
- * 
- * FIX: Moved to the BOTTOM so it does not hijack literal paths like /lists or /user/all!
  */
 router.get('/:imdbId', authenticate, async (req, res, next) => {
   try {

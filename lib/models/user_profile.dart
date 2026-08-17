@@ -5,6 +5,7 @@ class UserProfile {
   final String email;
   final String bio;
   final String profilePicture;
+  final String role; // 'user', 'admin', or 'guest'
 
   UserProfile({
     required this.id,
@@ -13,7 +14,11 @@ class UserProfile {
     required this.email,
     required this.bio,
     required this.profilePicture,
+    this.role = 'user',
   });
+
+  bool get isAdmin => role == 'admin';
+  bool get isGuest => role == 'guest';
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
@@ -23,6 +28,7 @@ class UserProfile {
       email: json['email'] ?? '',
       bio: json['bio'] ?? '',
       profilePicture: json['profilePicture'] ?? '',
+      role: json['role'] ?? 'user',
     );
   }
 
@@ -33,5 +39,6 @@ class UserProfile {
         'email': email,
         'bio': bio,
         'profilePicture': profilePicture,
+        'role': role,
       };
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/comment_item.dart';
 import '../../../providers/activity_provider.dart';
+import '../../../providers/auth_provider.dart'; // Added import
 
 class CommentSection extends StatefulWidget {
   final String imdbId;
@@ -35,6 +36,7 @@ class _CommentSectionState extends State<CommentSection> {
   @override
   Widget build(BuildContext context) {
     final comments = context.watch<ActivityProvider>().comments;
+    final isAdmin = context.watch<AuthProvider>().isAdmin; // Check admin status
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,6 +90,18 @@ class _CommentSectionState extends State<CommentSection> {
                         '${comment.createdAt.year}-${comment.createdAt.month.toString().padLeft(2, '0')}-${comment.createdAt.day.toString().padLeft(2, '0')}',
                         style: const TextStyle(color: Colors.white38, fontSize: 11),
                       ),
+                      // ADDED ADMIN DELETE BUTTON
+                      if (isAdmin) ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.delete_forever, color: Colors.redAccent, size: 18),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            context.read<ActivityProvider>().deleteComment(comment.id, widget.imdbId);
+                          },
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 8),

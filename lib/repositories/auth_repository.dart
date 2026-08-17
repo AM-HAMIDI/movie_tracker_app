@@ -86,6 +86,20 @@ class AuthRepository {
     );
   }
 
+  Future<List<UserProfile>> getAllUsers() async {
+    // Dynamically match your exact endpoint structure to prevent duplicate paths
+    final String usersEndpoint = ApiEndpoints.profile.replaceAll('profile', 'users');
+    
+    final response = await _httpClient.get(usersEndpoint);
+    final List data = response.data as List;
+    return data.map((e) => UserProfile.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> deleteUser(String userId) async {
+    final String usersEndpoint = ApiEndpoints.profile.replaceAll('profile', 'users');
+    await _httpClient.delete('$usersEndpoint/$userId');
+  }
+
   Future<void> logout() async {
     await _secureStorage.clearAll();
   }

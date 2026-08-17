@@ -46,6 +46,11 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _loginAsGuest() {
+    context.read<AuthProvider>().loginAsGuest();
+    Navigator.pushReplacementNamed(context, AppRouter.mainNav);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
@@ -136,6 +141,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text('Register'),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: isLoading ? null : _loginAsGuest,
+                    child: const Text(
+                      'Continue as Guest',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
                   ),
                 ],
               ),

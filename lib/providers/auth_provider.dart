@@ -18,6 +18,10 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _status == AuthStatus.authenticated;
   bool get isLoading => _status == AuthStatus.authenticating;
 
+  // Role helpers
+  bool get isGuest => _user?.isGuest ?? false;
+  bool get isAdmin => _user?.isAdmin ?? false;
+
   AuthProvider({AuthRepository? authRepository})
       : _authRepository = authRepository ?? AuthRepository() {
     checkInitialAuthStatus();
@@ -35,6 +39,21 @@ class AuthProvider extends ChangeNotifier {
     } catch (_) {
       _status = AuthStatus.unauthenticated;
     }
+    notifyListeners();
+  }
+
+  // GUEST LOGIN METHOD
+  Future<void> loginAsGuest() async {
+    _user = UserProfile(
+      id: 'guest_user',
+      fullName: 'Guest',
+      username: 'guest',
+      email: '',
+      bio: '',
+      profilePicture: '',
+      role: 'guest',
+    );
+    _status = AuthStatus.authenticated;
     notifyListeners();
   }
 

@@ -36,6 +36,7 @@ router.post('/register', validateRegistration, async (req, res, next) => {
       password: hashedPassword,
       bio: bio || '',
       profilePicture: profilePicture || '',
+      role: 'user' // Default to normal user
     });
 
     await user.save();
@@ -55,6 +56,7 @@ router.post('/register', validateRegistration, async (req, res, next) => {
         email: user.email,
         bio: user.bio,
         profilePicture: user.profilePicture,
+        role: user.role
       },
     });
   } catch (err) {
@@ -80,6 +82,7 @@ router.post('/login', async (req, res, next) => {
       });
     }
 
+    // NORMAL DATABASE LOGIN FOR EVERYONE (INCLUDING ADMIN)
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(401).json({
@@ -97,7 +100,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role || 'user' },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '30d' }
     );
@@ -111,6 +114,7 @@ router.post('/login', async (req, res, next) => {
         email: user.email,
         bio: user.bio,
         profilePicture: user.profilePicture,
+        role: user.role || 'user'
       },
     });
   } catch (err) {
@@ -132,6 +136,36 @@ router.get('/profile', authenticate, async (req, res, next) => {
       return res.status(404).json({ statusCode: 404, errorMessage: 'User not found.' });
     }
     res.json(user);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * ADMIN ONLY: Get all registered users
+ */
+router.get('/users', authenticate, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ errorMessage: 'Admin access required.' });
+    }
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * ADMIN ONLY: Delete a user by ID
+ */
+router.delete('/users/:id', authenticate, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ errorMessage: 'Admin access required.' });
+    }
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User deleted successfully.' });
   } catch (err) {
     next(err);
   }

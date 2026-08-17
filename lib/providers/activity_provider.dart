@@ -28,6 +28,16 @@ class ActivityProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+  
+  // FIXED: Added missing fetchComments method
+  Future<void> fetchComments(String imdbId) async {
+    try {
+      _comments = await _activityRepository.getComments(imdbId);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching comments: $e');
+    }
+  }
 
   Future<void> updateWatchStatus(String imdbId, String status) async {
     _currentActivity['watchStatus'] = status;
@@ -58,6 +68,15 @@ class ActivityProvider extends ChangeNotifier {
     final newComment = await _activityRepository.addComment(imdbId, text, hasSpoiler);
     _comments.insert(0, newComment);
     notifyListeners();
+  }
+
+  Future<void> deleteComment(String commentId, String imdbId) async {
+    try {
+      await _activityRepository.deleteComment(commentId);
+      await fetchComments(imdbId); // Now this works perfectly
+    } catch (e) {
+      debugPrint('Error deleting comment: $e');
+    }
   }
 
   Future<void> fetchUserStats() async {

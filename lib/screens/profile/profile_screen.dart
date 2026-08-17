@@ -58,7 +58,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Icon(Icons.person, size: 48, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
-                Text(user?.fullName ?? 'User', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(user?.fullName ?? 'User', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    if (user?.isAdmin == true) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.admin_panel_settings, color: Colors.redAccent, size: 20),
+                    ]
+                  ],
+                ),
                 Text('@${user?.username ?? ""}', style: const TextStyle(color: Colors.white54)),
                 if (user?.bio.isNotEmpty ?? false) ...[
                   const SizedBox(height: 6),
@@ -67,6 +76,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
+          
+          // --- ADMIN DASHBOARD ---
+          if (user?.isAdmin == true) ...[
+            const Divider(height: 36),
+            const Text('🛠️ Admin Dashboard', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+            const SizedBox(height: 12),
+            Card(
+              color: Colors.redAccent.withOpacity(0.1),
+              shape: RoundedRectangleBorder(side: const BorderSide(color: Colors.redAccent, width: 1), borderRadius: BorderRadius.circular(8)),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.people, color: Colors.redAccent),
+                    title: const Text('Manage Users'),
+                    onTap: () {
+                      // FIX: Navigate to the Admin Users Screen
+                      Navigator.pushNamed(context, AppRouter.adminUsers);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.comment, color: Colors.redAccent),
+                    title: const Text('Moderate Comments'),
+                    onTap: () {
+                      // Not implemented yet, can be added later
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.movie, color: Colors.redAccent),
+                    title: const Text('Manage Media Database'),
+                    onTap: () {
+                      // Not implemented yet, can be added later
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // --- STANDARD ACTIVITY SECTION ---
           const Divider(height: 36),
           const Text('📊 Activity Analytics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),

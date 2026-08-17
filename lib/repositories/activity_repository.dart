@@ -75,6 +75,11 @@ class ActivityRepository {
     return CommentItem.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<void> deleteComment(String commentId) async {
+    // Reuses the exact same base path as your POST comment route
+    await _httpClient.delete('${ApiEndpoints.addComment}/$commentId');
+  }
+
   Future<UserStats> getUserStats() async {
     final response = await _httpClient.get(ApiEndpoints.statistics);
     return UserStats.fromJson(response.data as Map<String, dynamic>);

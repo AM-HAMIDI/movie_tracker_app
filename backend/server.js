@@ -5,6 +5,9 @@ const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const connectDB = require('./config/db');
 const dns = require('node:dns/promises');
+const bcrypt = require('bcryptjs');
+const User = require('./models/User'); // Import User model for admin seeding
+
 dns.setServers(['1.1.1.1', '8.8.8.8']);
 
 // Load environment variables from .env
@@ -12,6 +15,35 @@ dotenv.config();
 
 // Connect to MongoDB
 connectDB();
+
+// --- MASTER ADMIN SEEDER ---
+async function seedAdmin() {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@mediatracker.com';
+    const existingAdmin = await User.findOne({ email: adminEmail });
+    
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'superSecretMasterPassword123!', 10);
+      await User.create({
+        fullName: 'System Administrator',
+        username: process.env.ADMIN_USERNAME || 'masteradmin',
+        email: adminEmail,
+        password: hashedPassword,
+        bio: 'Master of the system.',
+        profilePicture: '',
+        role: 'admin' // Marks this user as an admin
+      });
+      console.log('Master Admin successfully seeded into the database.');
+    } else {
+      console.log('Master Admin already exists in the database.');
+    }
+  } catch (err) {
+    console.error('Failed to seed admin:', err);
+  }
+}
+
+seedAdmin(); // Run the seeder on startup
+// ---------------------------
 
 const app = express();
 
