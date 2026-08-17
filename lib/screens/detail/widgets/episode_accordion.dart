@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../repositories/media_repository.dart';
-import '../../../models/episode_item.dart'; // <-- Added import for your model
+import '../../../models/episode_item.dart';
 
 class EpisodeAccordion extends StatefulWidget {
   final String imdbId;
   final int totalSeasons;
   final List<String> watchedEpisodes;
   final Function(List<String>) onWatchedChanged;
+  final void Function(int seasonNum, int episodeCount)? onSeasonCountsChanged;
 
   const EpisodeAccordion({
     super.key,
@@ -14,6 +15,7 @@ class EpisodeAccordion extends StatefulWidget {
     required this.totalSeasons,
     required this.watchedEpisodes,
     required this.onWatchedChanged,
+    this.onSeasonCountsChanged,
   });
 
   @override
@@ -23,7 +25,6 @@ class EpisodeAccordion extends StatefulWidget {
 class _EpisodeAccordionState extends State<EpisodeAccordion> {
   final MediaRepository _mediaRepo = MediaRepository();
   
-  // FIX: Changed from List<dynamic> to List<EpisodeItem> to use your model
   final Map<int, List<EpisodeItem>> _seasonEpisodes = {}; 
   final Map<int, bool> _loadingSeasons = {};
   final List<bool> _expandedSeasons = [];
@@ -44,13 +45,14 @@ class _EpisodeAccordionState extends State<EpisodeAccordion> {
     });
 
     try {
-      // FIX: Using getSeasonEpisodes to map directly to your EpisodeItem models
       final episodes = await _mediaRepo.getSeasonEpisodes(widget.imdbId, seasonNum);
       if (mounted) {
         setState(() {
           _seasonEpisodes[seasonNum] = episodes;
           _loadingSeasons[seasonNum] = false;
         });
+        // Pass the loaded episode count up to MediaDetailScreen
+        widget.onSeasonCountsChanged?.call(seasonNum, episodes.length);
       }
     } catch (e) {
       if (mounted) {
@@ -112,12 +114,10 @@ class _EpisodeAccordionState extends State<EpisodeAccordion> {
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: episodes.length,
                         itemBuilder: (context, epIndex) {
-                          // FIX: Extracting data from the EpisodeItem object safely
                           final ep = episodes[epIndex];
                           final epNumber = ep.episodeNumber;
                           final epTitle = ep.title;
                           
-                          // Omitting the plot text if it's the default OMDb fallback to keep the UI clean
                           final bool hasPlot = ep.plot != 'No description available for this episode.' && ep.plot != 'N/A';
                           final epReleased = ep.released;
                           

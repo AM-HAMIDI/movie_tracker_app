@@ -26,6 +26,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
   MediaItem? _media;
   bool _loading = true;
 
+  // Track episode counts per season to calculate a true total for the progress bar
+  final Map<int, int> _seasonEpisodeCounts = {};
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +44,17 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
         _loading = false;
       });
     }
+  }
+
+  // Calculate the true total of episodes based on fetched seasons, 
+  // falling back to the API's totalEpisodes if we haven't loaded them yet.
+  int get _knownTotalEpisodes {
+    if (_seasonEpisodeCounts.isNotEmpty) {
+      if (_seasonEpisodeCounts.length >= (_media?.totalSeasons ?? 0)) {
+        return _seasonEpisodeCounts.values.fold(0, (a, b) => a + b);
+      }
+    }
+    return _media?.totalEpisodes ?? 0;
   }
 
   @override
@@ -116,7 +130,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
                     
                     if (_media!.type == MediaType.series)
                       Text(
-                        'Seasons: ${_media!.totalSeasons} | Episodes: ${_media!.totalEpisodes > 0 ? _media!.totalEpisodes : "N/A"}', 
+                        'Seasons: ${_media!.totalSeasons} | Episodes: ${_knownTotalEpisodes > 0 ? _knownTotalEpisodes : "N/A"}', 
                         style: const TextStyle(color: Colors.white70)
                       ),
                     
@@ -148,11 +162,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
             const Divider(height: 24),
             SeriesProgressBar(
               watchedCount: watchedEpisodes.length,
-              // FIX: True percentage driven by the actual API totalEpisodes
-              totalCount: _media!.totalEpisodes, 
+              totalCount: _knownTotalEpisodes, 
               status: currentStatus,
-              // FIX: Passed series status to handle the Green vs Purple rule
-              seriesStatus: _media!.status, 
+              seriesStatus: _media!.status,
             ),
             const SizedBox(height: 16),
             const Text('Seasons & Episodes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -163,6 +175,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
               watchedEpisodes: watchedEpisodes,
               onWatchedChanged: (updatedList) {
                 context.read<ActivityProvider>().updateWatchedEpisodes(widget.imdbId, updatedList);
+              },
+              onSeasonCountsChanged: (seasonNum, episodeCount) {
+                setState(() {
+                  _seasonEpisodeCounts[seasonNum] = episodeCount;
+                });
               },
             ),
           ],
