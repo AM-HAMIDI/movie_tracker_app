@@ -133,6 +133,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> updateProfile({required String fullName, required String bio}) async {
+    try {
+      _user = await _authRepository.updateProfile(fullName: fullName, bio: bio);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error updating profile: $e');
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await _authRepository.logout();
     _user = null;

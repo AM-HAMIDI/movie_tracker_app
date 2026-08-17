@@ -86,6 +86,21 @@ class AuthRepository {
     );
   }
 
+  Future<UserProfile> updateProfile({
+    required String fullName,
+    required String bio,
+  }) async {
+    final response = await _httpClient.put(
+      ApiEndpoints.profile,
+      data: {
+        'fullName': fullName,
+        'bio': bio,
+      },
+    );
+
+    return UserProfile.fromJson(response.data as Map<String, dynamic>);
+  }
+
   Future<List<UserProfile>> getAllUsers() async {
     // Dynamically match your exact endpoint structure to prevent duplicate paths
     final String usersEndpoint = ApiEndpoints.profile.replaceAll('profile', 'users');

@@ -142,6 +142,36 @@ router.get('/profile', authenticate, async (req, res, next) => {
 });
 
 /**
+ * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     summary: Update profile of logged in user
+ *     tags: [Authentication]
+ */
+router.put('/profile', authenticate, async (req, res, next) => {
+  try {
+    const { fullName, bio } = req.body;
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        ...(fullName && { fullName }), 
+        ...(bio !== undefined && { bio }) 
+      },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ statusCode: 404, errorMessage: 'User not found.' });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * ADMIN ONLY: Get all registered users
  */
 router.get('/users', authenticate, async (req, res, next) => {

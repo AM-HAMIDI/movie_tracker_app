@@ -5,7 +5,8 @@ import '../../screens/auth/reset_password_screen.dart';
 import '../../screens/navigation/main_navigation_screen.dart';
 import '../../screens/detail/media_detail_screen.dart';
 import '../../screens/lists/list_detail_screen.dart';
-import '../../screens/profile/admin_users_screen.dart'; 
+import '../../screens/profile/admin_users_screen.dart';
+import '../../screens/profile/edit_profile_screen.dart'; // Make sure this screen is imported!
 
 class AppRouter {
   static const String initial = '/';
@@ -14,7 +15,7 @@ class AppRouter {
   static const String resetPassword = '/reset-password';
   static const String mainNav = '/main-nav';
   static const String mediaDetail = '/media-detail';
-  static const String editProfile = '/edit-profile';
+  static const String editProfile = '/edit-profile'; // Route key
   static const String listDetail = '/list-detail';
   static const String adminUsers = '/admin-users';
 
@@ -38,6 +39,9 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => ListDetailScreen(listId: listId),
         );
+      case editProfile:
+        // ADDED ROUTE CASE HERE
+        return MaterialPageRoute(builder: (_) => const EditProfileScreen());
       case adminUsers:
         return MaterialPageRoute(builder: (_) => const AdminUsersScreen());
       default:
