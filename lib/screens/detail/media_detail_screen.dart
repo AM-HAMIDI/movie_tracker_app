@@ -148,8 +148,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen> {
             const Divider(height: 24),
             SeriesProgressBar(
               watchedCount: watchedEpisodes.length,
-              totalCount: _media!.totalSeasons * 8, 
+              // FIX: True percentage driven by the actual API totalEpisodes
+              totalCount: _media!.totalEpisodes, 
               status: currentStatus,
+              // FIX: Passed series status to handle the Green vs Purple rule
+              seriesStatus: _media!.status, 
             ),
             const SizedBox(height: 16),
             const Text('Seasons & Episodes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
