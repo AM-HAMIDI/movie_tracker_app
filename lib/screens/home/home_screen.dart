@@ -3,9 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/media_provider.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_view.dart';
-import 'widgets/popular_section.dart';
-import 'widgets/new_releases_section.dart';
-import 'widgets/recommended_section.dart';
+import 'widgets/media_horizontal_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +18,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mediaProvider = context.read<MediaProvider>();
-      if (mediaProvider.popularTitles.isEmpty) {
+      // Check if data is already loaded before fetching
+      if (mediaProvider.popularMovies.isEmpty) {
         mediaProvider.fetchHomeDashboard();
       }
     });
@@ -56,13 +55,36 @@ class _HomeScreenState extends State<HomeScreen> {
           return RefreshIndicator(
             onRefresh: () => mediaProvider.fetchHomeDashboard(),
             child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               children: [
-                PopularSection(items: mediaProvider.popularTitles),
-                const SizedBox(height: 16),
-                NewReleasesSection(items: mediaProvider.newReleases),
-                const SizedBox(height: 16),
-                RecommendedSection(items: mediaProvider.recommendedTitles),
+                MediaHorizontalSection(
+                  title: 'Popular Movies',
+                  items: mediaProvider.popularMovies,
+                ),
+                const SizedBox(height: 24),
+                
+                MediaHorizontalSection(
+                  title: 'Popular Series',
+                  items: mediaProvider.popularSeries,
+                ),
+                const SizedBox(height: 24),
+                
+                MediaHorizontalSection(
+                  title: 'New Releases',
+                  items: mediaProvider.newReleases,
+                ),
+                const SizedBox(height: 24),
+                
+                MediaHorizontalSection(
+                  title: 'High IMDb Ratings',
+                  items: mediaProvider.highRatedTitles,
+                ),
+                const SizedBox(height: 24),
+                
+                MediaHorizontalSection(
+                  title: 'Recommended For You',
+                  items: mediaProvider.recommendedTitles,
+                ),
                 const SizedBox(height: 24),
               ],
             ),

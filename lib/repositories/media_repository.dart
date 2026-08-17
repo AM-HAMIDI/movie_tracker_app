@@ -34,6 +34,30 @@ class MediaRepository {
     }
   }
 
+  // --- Methods for the 5 Home Dashboard Sections ---
+
+  Future<List<MediaItem>> getPopularMovies() async {
+    return searchMedia('Marvel'); // Replace with specific query/endpoint if backend supports type filters
+  }
+
+  Future<List<MediaItem>> getPopularSeries() async {
+    return searchMedia('Breaking'); 
+  }
+
+  Future<List<MediaItem>> getNewReleases() async {
+    return searchMedia('2024'); 
+  }
+
+  Future<List<MediaItem>> getHighRatedTitles() async {
+    return searchMedia('Lord'); 
+  }
+
+  Future<List<MediaItem>> getRecommendedTitles() async {
+    return searchMedia('Batman'); 
+  }
+
+  // --- Existing Details & Episode Methods ---
+
   Future<MediaItem> getMediaDetail(String imdbId) async {
     try {
       final response = await _httpClient.get('${ApiEndpoints.mediaDetail}/$imdbId');
@@ -49,7 +73,6 @@ class MediaRepository {
     }
   }
 
-  // Standard method to fetch season episode details using ApiEndpoints.seasonDetail[cite: 5, 7]
   Future<List<dynamic>> getSeasonDetails(String imdbId, int seasonNum) async {
     try {
       final response = await _httpClient.get(ApiEndpoints.seasonDetail(imdbId, seasonNum));
@@ -59,7 +82,6 @@ class MediaRepository {
     }
   }
 
-  // Alternative method using the EpisodeItem model directly[cite: 5, 9]
   Future<List<EpisodeItem>> getSeasonEpisodes(String imdbId, int seasonNum) async {
     final response = await _httpClient.get(ApiEndpoints.seasonDetail(imdbId, seasonNum));
     final List list = response.data as List;
