@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../models/episode_item.dart';
 import '../../../repositories/media_repository.dart';
+import '../../../models/episode_item.dart'; // <-- Added import for your model
 
 class EpisodeAccordion extends StatefulWidget {
   final String imdbId;
   final int totalSeasons;
   final List<String> watchedEpisodes;
-  final ValueChanged<List<String>> onWatchedChanged;
+  final Function(List<String>) onWatchedChanged;
 
   const EpisodeAccordion({
     super.key,
@@ -21,81 +21,143 @@ class EpisodeAccordion extends StatefulWidget {
 }
 
 class _EpisodeAccordionState extends State<EpisodeAccordion> {
-  final _mediaRepo = MediaRepository();
-  int? _expandedSeason;
-  final Map<int, List<EpisodeItem>> _seasonData = {};
-  final Map<int, bool> _loadingMap = {};
+  final MediaRepository _mediaRepo = MediaRepository();
+  
+  // FIX: Changed from List<dynamic> to List<EpisodeItem> to use your model
+  final Map<int, List<EpisodeItem>> _seasonEpisodes = {}; 
+  final Map<int, bool> _loadingSeasons = {};
+  final List<bool> _expandedSeasons = [];
 
-  void _loadSeason(int seasonNum) async {
-    if (_seasonData.containsKey(seasonNum)) return;
-    setState(() => _loadingMap[seasonNum] = true);
-
-    try {
-      final episodes = await _mediaRepo.getSeasonEpisodes(widget.imdbId, seasonNum);
-      setState(() {
-        _seasonData[seasonNum] = episodes;
-        _loadingMap[seasonNum] = false;
-      });
-    } catch (_) {
-      setState(() => _loadingMap[seasonNum] = false);
-    }
+  @override
+  void initState() {
+    super.initState();
+    _expandedSeasons.addAll(List.generate(widget.totalSeasons, (_) => false));
   }
 
-  void _toggleEpisode(String code) {
-    final updated = List<String>.from(widget.watchedEpisodes);
-    if (updated.contains(code)) {
-      updated.remove(code);
-    } else {
-      updated.add(code);
+  Future<void> _fetchSeasonData(int seasonNum) async {
+    if (_seasonEpisodes.containsKey(seasonNum) || (_loadingSeasons[seasonNum] ?? false)) {
+      return;
     }
-    widget.onWatchedChanged(updated);
+
+    setState(() {
+      _loadingSeasons[seasonNum] = true;
+    });
+
+    try {
+      // FIX: Using getSeasonEpisodes to map directly to your EpisodeItem models
+      final episodes = await _mediaRepo.getSeasonEpisodes(widget.imdbId, seasonNum);
+      if (mounted) {
+        setState(() {
+          _seasonEpisodes[seasonNum] = episodes;
+          _loadingSeasons[seasonNum] = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loadingSeasons[seasonNum] = false;
+        });
+      }
+      debugPrint('Error loading season $seasonNum: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionPanelList.radio(
-      initialOpenPanelValue: _expandedSeason,
-      children: List.generate(widget.totalSeasons, (index) {
-        final seasonNum = index + 1;
-        final episodes = _seasonData[seasonNum] ?? [];
-        final isLoading = _loadingMap[seasonNum] ?? false;
+    if (widget.totalSeasons <= 0) {
+      return const Text('No seasons information available.', style: TextStyle(color: Colors.white54));
+    }
 
-        return ExpansionPanelRadio(
-          value: seasonNum,
-          canTapOnHeader: true,
-          headerBuilder: (context, isExpanded) {
-            if (isExpanded) _loadSeason(seasonNum);
-            return ListTile(
-              title: Text('Season $seasonNum', style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(
-                episodes.isNotEmpty ? '${episodes.length} Episodes' : 'Tap to expand',
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
-              ),
-            );
-          },
-          body: isLoading
-              ? const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              : Column(
-                  children: episodes.map((ep) {
-                    final code = 'S${seasonNum}E${ep.episodeNumber}';
-                    final isChecked = widget.watchedEpisodes.contains(code);
-                    return CheckboxListTile(
-                      value: isChecked,
-                      activeColor: Colors.deepPurpleAccent,
-                      title: Text('Ep ${ep.episodeNumber}: ${ep.title}'),
-                      subtitle: Text(
-                        'Aired: ${ep.released} • Rating: ${ep.rating} ⭐',
-                        style: const TextStyle(color: Colors.white54, fontSize: 12),
-                      ),
-                      onChanged: (_) => _toggleEpisode(code),
-                    );
-                  }).toList(),
+    return Theme(
+      data: Theme.of(context).copyWith(cardColor: const Color(0xFF1E1E1E)),
+      child: ExpansionPanelList(
+        elevation: 1,
+        expandedHeaderPadding: EdgeInsets.zero,
+        expansionCallback: (int index, bool isExpanded) {
+          setState(() {
+            _expandedSeasons[index] = !_expandedSeasons[index];
+          });
+          
+          if (_expandedSeasons[index]) {
+            _fetchSeasonData(index + 1);
+          }
+        },
+        children: List.generate(widget.totalSeasons, (index) {
+          final seasonNum = index + 1;
+          final isExpanded = _expandedSeasons[index];
+          final isLoading = _loadingSeasons[seasonNum] ?? false;
+          final episodes = _seasonEpisodes[seasonNum] ?? [];
+
+          return ExpansionPanel(
+            headerBuilder: (BuildContext context, bool isExpanded) {
+              return ListTile(
+                title: Text(
+                  'Season $seasonNum',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                 ),
-        );
-      }),
+              );
+            },
+            body: isLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                : episodes.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text('No episodes found for this season.', style: TextStyle(color: Colors.white54)),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: episodes.length,
+                        itemBuilder: (context, epIndex) {
+                          // FIX: Extracting data from the EpisodeItem object safely
+                          final ep = episodes[epIndex];
+                          final epNumber = ep.episodeNumber;
+                          final epTitle = ep.title;
+                          
+                          // Omitting the plot text if it's the default OMDb fallback to keep the UI clean
+                          final bool hasPlot = ep.plot != 'No description available for this episode.' && ep.plot != 'N/A';
+                          final epReleased = ep.released;
+                          
+                          final episodeKey = 'S${seasonNum}E$epNumber';
+                          final isWatched = widget.watchedEpisodes.contains(episodeKey);
+
+                          return CheckboxListTile(
+                            title: Text('$epNumber. $epTitle', style: const TextStyle(color: Colors.white, fontSize: 14)),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 4),
+                                Text('Released: $epReleased', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                                if (hasPlot) ...[
+                                  const SizedBox(height: 2),
+                                  Text(ep.plot, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                ],
+                              ],
+                            ),
+                            value: isWatched,
+                            activeColor: Colors.deepPurpleAccent,
+                            onChanged: (bool? value) {
+                              List<String> updatedList = List.from(widget.watchedEpisodes);
+                              if (value == true) {
+                                if (!updatedList.contains(episodeKey)) {
+                                  updatedList.add(episodeKey);
+                                }
+                              } else {
+                                updatedList.remove(episodeKey);
+                              }
+                              widget.onWatchedChanged(updatedList);
+                            },
+                          );
+                        },
+                      ),
+            isExpanded: isExpanded,
+            canTapOnHeader: true,
+          );
+        }),
+      ),
     );
   }
 }

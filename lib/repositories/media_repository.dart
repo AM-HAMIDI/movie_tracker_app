@@ -36,7 +36,7 @@ class MediaRepository {
 
   Future<MediaItem> getMediaDetail(String imdbId) async {
     try {
-      final response = await _httpClient.get('${ApiEndpoints.detail}/$imdbId');
+      final response = await _httpClient.get('${ApiEndpoints.mediaDetail}/$imdbId');
       final data = response.data as Map<String, dynamic>;
       await _cacheService.cacheMediaDetail(imdbId, data);
       return MediaItem.fromJson(data);
@@ -49,6 +49,17 @@ class MediaRepository {
     }
   }
 
+  // Standard method to fetch season episode details using ApiEndpoints.seasonDetail[cite: 5, 7]
+  Future<List<dynamic>> getSeasonDetails(String imdbId, int seasonNum) async {
+    try {
+      final response = await _httpClient.get(ApiEndpoints.seasonDetail(imdbId, seasonNum));
+      return response.data as List<dynamic>;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Alternative method using the EpisodeItem model directly[cite: 5, 9]
   Future<List<EpisodeItem>> getSeasonEpisodes(String imdbId, int seasonNum) async {
     final response = await _httpClient.get(ApiEndpoints.seasonDetail(imdbId, seasonNum));
     final List list = response.data as List;

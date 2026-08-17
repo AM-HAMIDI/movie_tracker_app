@@ -10,6 +10,10 @@ class ApiEndpoints {
   // Media Routes
   static String get search => '${AppConfig.baseUrl}/media/search';
   static String get detail => '${AppConfig.baseUrl}/media/detail';
+  
+  // Added alias to prevent naming mismatches across repositories
+  static String get mediaDetail => detail; 
+
   static String seasonDetail(String imdbId, int seasonNum) =>
       '${AppConfig.baseUrl}/media/detail/$imdbId/season/$seasonNum';
 
